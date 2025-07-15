@@ -1,0 +1,80 @@
+import matplotlib
+matplotlib.use('Agg')
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('studentai_panda.csv')
+
+student_count = len(df)
+
+grades_columns = df.columns[2:]
+df['Vidurkis'] = df[grades_columns].mean(axis=1, skipna=True)
+
+df['Egzaminas'] = df['Vidurkis'].apply(lambda x: 'Teigiamas' if x >= 5 else 'Neigiamas')
+
+teigiamas_count = (df['Egzaminas'] == 'Teigiamas').sum()
+neigiamas_count = (df['Egzaminas'] == 'Neigiamas').sum()
+
+teigiamas_students = df[df['Egzaminas'] == 'Teigiamas'][['Vardas', 'Pavarde', 'Vidurkis']]
+neigiamas_students = df[df['Egzaminas'] == 'Neigiamas'][['Vardas', 'Pavarde', 'Vidurkis']]
+
+vidurkis_10_count = (df['Vidurkis'] == 10).sum()
+
+intervals = {
+    '[5–6)': df[(df['Vidurkis'] >= 5) & (df['Vidurkis'] < 6)].shape[0],
+    '[6–7)': df[(df['Vidurkis'] >= 6) & (df['Vidurkis'] < 7)].shape[0],
+    '[7–8)': df[(df['Vidurkis'] >= 7) & (df['Vidurkis'] < 8)].shape[0],
+    '[8–9)': df[(df['Vidurkis'] >= 8) & (df['Vidurkis'] < 9)].shape[0],
+    '[9–10]': df[(df['Vidurkis'] >= 9) & (df['Vidurkis'] <= 10)].shape[0]
+}
+
+df_sorted = df.sort_values(by='Vidurkis', ascending=False)
+
+top3_students = df_sorted.head(3)[['Vardas', 'Pavarde', 'Vidurkis']]
+bottom3_students = df_sorted.tail(3)[['Vardas', 'Pavarde', 'Vidurkis']]
+
+print('Studentų skaičius:', student_count)
+print('Studentai su teigiamu vidurkiu:', teigiamas_count)
+print('Studentai su neigiamu vidurkiu:', neigiamas_count)
+print('\nStudentai su teigiamu vidurkiu:\n', teigiamas_students)
+print('\nStudentai su neigiamu vidurkiu:\n', neigiamas_students)
+print('\nStudentai, kurių vidurkis == 10:', vidurkis_10_count)
+print('\nStudentai su vidurkiu intervale:', intervals)
+print('\n3 geriausi studentai:\n', top3_students)
+print('\n3 blogiausi studentai:\n', bottom3_students)
+
+plt.figure(figsize=(8, 6))
+plt.hist(df['Vidurkis'], bins=10, color='skyblue', edgecolor='black')
+plt.title('Histograma\' Vidurkis')
+plt.xlabel('Vidurkis')
+plt.ylabel('Studentų skaičius')
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.savefig('histogram_vidurkis.png')
+plt.close()
+
+plt.figure(figsize=(8, 6))
+plt.bar(intervals.keys(), intervals.values(), color='lightgreen', edgecolor='black')
+plt.title('Kiekis studentų su skirtingais vidurkiais')
+plt.xlabel('Intervalas')
+plt.ylabel('Studentų skaičius')
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.savefig('bar_chart_intervals.png')
+plt.close()
+
+labels = ['Teigiamas', 'Neigiamas']
+sizes = [teigiamas_count, neigiamas_count]
+colors = ['#66b3ff', '#ff9999']
+plt.figure(figsize=(8, 6))
+plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
+plt.title('Teigiami vs neigiami vidurkiai procentaliai')
+plt.savefig('pie_chart_teigiamas_neigiamas.png')
+plt.close()
+
+plt.figure(figsize=(8, 6))
+plt.boxplot(df['Vidurkis'].dropna(), patch_artist=True, boxprops=dict(facecolor='lightcoral'))
+plt.title('Vidurkis Boxplot')
+plt.ylabel('Vidurkis')
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.savefig('boxplot_vidurkis.png')
+plt.close()
+

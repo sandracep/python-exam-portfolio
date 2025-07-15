@@ -1,0 +1,113 @@
+# 1 Užduotis – Studentai - pirma dalis.
+
+def nuskaityti_studentus(failo_pavadinimas):
+    studentai = []
+
+    with open(failo_pavadinimas, encoding='utf-8') as failas:
+        for eilute in failas:
+            eilute = eilute.strip()
+            isskaidyta = eilute.split(',')
+
+            if isskaidyta[0].lower() == 'vardas' or len(isskaidyta) < 3:
+                continue
+
+            vardas = isskaidyta[0]
+            pavarde = isskaidyta[1]
+
+            try:
+                pazymiai = list(map(int, isskaidyta[2].split()))
+            except ValueError:
+                print(f'Netinkami pažymiai studentui {vardas} {pavarde}: {isskaidyta[2]}')
+                continue
+
+            vidurkis = round(sum(pazymiai) / len(pazymiai), 1)
+            leidziama = ar_vidurkis_pakankamas(vidurkis)
+
+            studentas = {
+                'vardas': vardas,
+                'pavarde': pavarde,
+                'pazymiai': pazymiai,
+                'vidurkis': vidurkis,
+                'leidziama': leidziama
+            }
+
+            studentai.append(studentas)
+
+    return studentai
+
+def ar_vidurkis_pakankamas(vidurkis):
+    return vidurkis >= 5
+
+def irasyti_rezultatus(studentai, failo_pavadinimas):
+    with open(failo_pavadinimas, 'w', encoding='utf-8') as failas:
+        failas.write(f'Sąraše yra {len(studentai)} studentai.\n\n')
+
+        leidziama = 0
+        neleidziama = 0
+
+        for studentas in studentai:
+            failas.write(f'Vardas - {studentas['vardas']}, pavardė - {studentas['pavarde']}, '
+                         f'vidurkis - {studentas['vidurkis']}\n')
+            if studentas['leidziama']:
+                leidziama += 1
+            else:
+                neleidziama += 1
+
+        failas.write(f'\n{leidziama} - Studentams leidžiama laikyti egzaminą.\n')
+        failas.write(f'{neleidziama} - Studentams neleidžiama laikyti egzamino.\n')
+
+studentai = nuskaityti_studentus('studentai.txt')
+irasyti_rezultatus(studentai, 'rezultatai.txt')
+
+# 2 Užduotis – Studentai – antra dalis.
+
+def nuskaityti_studentus_is_failo(failo_pavadinimas):
+    studentai = []
+    with open(failo_pavadinimas, 'r', encoding='utf-8') as failas:
+        for eilute in failas:
+            eilute = eilute.strip()
+            if eilute.startswith('Vardas -') and 'vidurkis -' in eilute:
+                dalys = eilute.split(', ')
+                vardas = dalys[0].split(' - ')[1]
+                pavarde = dalys[1].split(' - ')[1]
+                vidurkis = float(dalys[2].split(' - ')[1])
+                studentai.append([vardas, pavarde, vidurkis])
+    return studentai
+
+def rasti_didziausia_vidurki(studentai):
+    return max(studentai, key=lambda x: x[2])[2]
+
+def studentai_su_vidurkiu(studentai, tikslinis_vidurkis):
+    return [s for s in studentai if s[2] == tikslinis_vidurkis]
+
+failo_pavadinimas = 'rezultatai.txt'
+studentai = nuskaityti_studentus_is_failo(failo_pavadinimas)
+
+print('Apdorotas studentų sąrašas:')
+for s in studentai:
+    print(f'{s}')
+
+didziausias = rasti_didziausia_vidurki(studentai)
+maziausias = min(studentai, key=lambda x: x[2])[2]
+
+print('\nStudentai turintys didžiausią vidurkį:')
+for s in studentai_su_vidurkiu(studentai, didziausias):
+    print(f'Vardas - {s[0]}, pavardė - {s[1]}, vidurkis - {s[2]}')
+
+print('\nStudentai turintys mažiausią vidurkį:')
+for s in studentai_su_vidurkiu(studentai, maziausias):
+    print(f'Vardas - {s[0]}, pavardė - {s[1]}, vidurkis - {s[2]}')
+
+print(f'\nDidžiausias vidurkis - {didziausias}')
+print(f'Mažiausias vidurkis - {maziausias}')
+
+with open('rezultatai.txt', 'a', encoding='utf-8') as failas:
+    failas.write('\nStudentai turintys didžiausią vidurkį:\n')
+    for s in studentai_su_vidurkiu(studentai, didziausias):
+        failas.write(f'Vardas - {s[0]}, pavardė - {s[1]}, vidurkis - {s[2]}\n')
+    failas.write(f'Didžiausias vidurkis - {didziausias}\n')
+
+
+
+
+
